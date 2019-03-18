@@ -73,5 +73,5 @@ config :demo, Demo.Repo,
   username: "postgres",
   password: "postgres",
   database: "demo_dev",
-  hostname: "localhost",
+  hostname: System.get_env("LIVE_VIEW_DB_HOST") || "localhost",
   pool_size: 10

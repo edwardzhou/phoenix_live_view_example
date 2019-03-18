@@ -1,0 +1,48 @@
+version: '3'
+
+volumes:
+  uploads: {}
+  pg_data: {}
+
+networks:
+  live-view-network:
+
+services:
+  live-view-pgsql:
+    build:
+      context: ./pgsql
+      dockerfile: Dockerfile
+    image: "${DOCKER_REGISTRY_URL}/${DOCKER_PROJECT}/${ENV}/live-view-pgsql"
+    env_file:
+      - .env
+    restart: always
+    tty: true
+    ports:
+      - "${PG_PORT}"
+    networks:
+      - "live-view-network"
+    deploy:
+      replicas: 0
+    volumes:
+      - ${PGDATA_VOLUME}:/var/lib/postgresql/data
+  
+  live-view-app:
+    depends_on:
+      - live-view-pgsql
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        - LIVE_VIEW_DB_USER=${LIVE_VIEW_DB_USER}
+        - LIVE_VIEW_DB_PASSWORD=${LIVE_VIEW_DB_PASSWORD}
+        - LIVE_VIEW_DB_NAME=${LIVE_VIEW_DB_NAME}
+        - LIVE_VIEW_DB_HOST=${LIVE_VIEW_DB_HOST}
+    image: "${DOCKER_REGISTRY_URL}/${DOCKER_PROJECT}/${ENV}/live-view-app"
+    env_file:
+      - .env
+    restart: always
+    tty: true
+    ports: 
+      - "4000:4000"
+    networks:
+      - "live-view-network"
